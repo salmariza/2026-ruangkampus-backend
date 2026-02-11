@@ -1,18 +1,11 @@
-# Build results
+# .NET
 bin/
 obj/
 
-# Visual Studio
-.vs/
+# SQLite database (local)
+*.db
+
+# User-specific files
 *.user
 *.suo
-
-# Logs
-*.log
-
-# Environment variables
-.env
-
-# OS files
-.DS_Store
-Thumbs.db
+.vs/
