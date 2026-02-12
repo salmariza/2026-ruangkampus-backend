@@ -5,20 +5,20 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RuangKampus.API", "RuangKampus.API.csproj", "{4BFC2657-D48F-BC83-DEA3-E7AE2D0B6A1B}"
 EndProject
 Global
-	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{4BFC2657-D48F-BC83-DEA3-E7AE2D0B6A1B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4BFC2657-D48F-BC83-DEA3-E7AE2D0B6A1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4BFC2657-D48F-BC83-DEA3-E7AE2D0B6A1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4BFC2657-D48F-BC83-DEA3-E7AE2D0B6A1B}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {A967FA33-78A6-4D16-B957-0E4696BC3256}
-	EndGlobalSection
+  GlobalSection(SolutionConfigurationPlatforms) = preSolution
+    Debug|Any CPU = Debug|Any CPU
+    Release|Any CPU = Release|Any CPU
+  EndGlobalSection
+  GlobalSection(ProjectConfigurationPlatforms) = postSolution
+    {4BFC2657-D48F-BC83-DEA3-E7AE2D0B6A1B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {4BFC2657-D48F-BC83-DEA3-E7AE2D0B6A1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {4BFC2657-D48F-BC83-DEA3-E7AE2D0B6A1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {4BFC2657-D48F-BC83-DEA3-E7AE2D0B6A1B}.Release|Any CPU.Build.0 = Release|Any CPU
+  EndGlobalSection
+  GlobalSection(SolutionProperties) = preSolution
+    HideSolutionNode = FALSE
+  EndGlobalSection
+  GlobalSection(ExtensibilityGlobals) = postSolution
+    SolutionGuid = {A967FA33-78A6-4D16-B957-0E4696BC3256}
+  EndGlobalSection
 EndGlobal
