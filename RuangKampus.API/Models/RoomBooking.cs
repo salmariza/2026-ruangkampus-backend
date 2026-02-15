@@ -9,10 +9,11 @@ namespace RuangKampus.API.Models
 
         public string BookerName { get; set; } = null!;
 
+        public string PurposeOfBooking { get; set; } = null!;
+        
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
 
-        // ➕ status booking
         public BookingStatus Status { get; set; } = BookingStatus.Pending;
     }
 }
