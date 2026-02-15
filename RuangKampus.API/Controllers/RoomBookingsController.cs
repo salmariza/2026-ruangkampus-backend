@@ -22,7 +22,6 @@ namespace RuangKampus.API.Controllers
         {
             var bookings = await _context.RoomBookings.ToListAsync();
 
-            // Mengonversi RoomBooking menjadi RoomBookingDto
             var bookingDtos = bookings.Select(b => new RoomBookingDto
             {
                 Id = b.Id,
@@ -41,6 +40,19 @@ namespace RuangKampus.API.Controllers
         [HttpPost]
         public async Task<ActionResult<RoomBookingDto>> CreateBooking(RoomBookingDto bookingDto)
         {
+            // Validasi StartTime dan EndTime
+            if (bookingDto.StartTime >= bookingDto.EndTime)
+            {
+                return BadRequest("StartTime harus lebih kecil dari EndTime.");
+            }
+
+            // Validasi RoomId
+            var room = await _context.Rooms.FirstOrDefaultAsync(r => r.Id == bookingDto.RoomId);
+            if (room == null)
+            {
+                return BadRequest("RoomId tidak valid.");
+            }
+
             // Validasi bentrok jadwal
             var isConflict = await _context.RoomBookings.AnyAsync(b =>
                 b.RoomId == bookingDto.RoomId &&
@@ -68,8 +80,15 @@ namespace RuangKampus.API.Controllers
                 PurposeOfBooking = bookingDto.PurposeOfBooking
             };
 
-            _context.RoomBookings.Add(booking);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.RoomBookings.Add(booking);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
 
             // Mengonversi ke DTO untuk response
             var bookingResponse = new RoomBookingDto
@@ -96,6 +115,12 @@ namespace RuangKampus.API.Controllers
                 return NotFound();
             }
 
+            // Validasi StartTime dan EndTime
+            if (bookingDto.StartTime >= bookingDto.EndTime)
+            {
+                return BadRequest("StartTime harus lebih kecil dari EndTime.");
+            }
+
             // Update fields
             booking.BookerName = bookingDto.BookerName;
             booking.StartTime = bookingDto.StartTime;
@@ -103,7 +128,14 @@ namespace RuangKampus.API.Controllers
             booking.Status = (BookingStatus)Enum.Parse(typeof(BookingStatus), bookingDto.Status);
             booking.PurposeOfBooking = bookingDto.PurposeOfBooking;
 
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
 
             return NoContent(); // Successful update without returning data
         }
@@ -120,7 +152,6 @@ namespace RuangKampus.API.Controllers
                 return NotFound();
             }
 
-            // Mengonversi RoomBooking menjadi RoomBookingDto
             var bookingDto = new RoomBookingDto
             {
                 Id = booking.Id,
