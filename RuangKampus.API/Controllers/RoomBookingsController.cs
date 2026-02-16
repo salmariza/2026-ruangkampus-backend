@@ -18,23 +18,27 @@ namespace RuangKampus.API.Controllers
 
         // GET: api/RoomBookings
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<RoomBookingDto>>> GetBookings()
-        {
-            var bookings = await _context.RoomBookings.ToListAsync();
+public async Task<ActionResult<IEnumerable<RoomBookingDto>>> GetBookings()
+{
+    var bookings = await _context.RoomBookings
+        .Include(b => b.Room)
+        .ToListAsync();
 
-            var bookingDtos = bookings.Select(b => new RoomBookingDto
-            {
-                Id = b.Id,
-                RoomId = b.RoomId,
-                BookerName = b.BookerName,
-                StartTime = b.StartTime,
-                EndTime = b.EndTime,
-                Status = b.Status.ToString(),
-                PurposeOfBooking = b.PurposeOfBooking
-            }).ToList();
+    var result = bookings.Select(b => new RoomBookingDto
+    {
+        Id = b.Id,
+        RoomId = b.RoomId,
+        RoomName = b.Room != null ? b.Room.Name : "",
+        BookerName = b.BookerName,
+        PurposeOfBooking = b.PurposeOfBooking,
+        StartTime = b.StartTime,
+        EndTime = b.EndTime,
+        Status = b.Status.ToString()
+    }).ToList();
 
-            return Ok(bookingDtos);
-        }
+    return Ok(result);
+}
+
 
         // POST: api/RoomBookings
         [HttpPost]

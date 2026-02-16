@@ -4,6 +4,7 @@ namespace RuangKampus.API.Models
     {
         public int Id { get; set; }
         public int RoomId { get; set; }
+        public string RoomName { get; set; }
         public string BookerName { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
