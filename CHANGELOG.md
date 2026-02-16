@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.1] - 2026-02-17
+### Fixed
+- Perbaikan endpoint PATCH RoomBookings
+- Perbaikan validasi RoomName dan Status
+- Sinkronisasi payload frontend & backend
+
 ## [1.0.0] - 2026-02-12
 ### Added
 - Room CRUD endpoints
