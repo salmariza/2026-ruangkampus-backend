@@ -18,107 +18,156 @@ namespace RuangKampus.API.Controllers
 
         // GET: api/RoomBookings
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<RoomBooking>>> GetBookings()
-        {
-            return await _context.RoomBookings
-                .Include(b => b.Room)
-                .ToListAsync();
-        }
+public async Task<ActionResult<IEnumerable<RoomBookingDto>>> GetBookings()
+{
+    var bookings = await _context.RoomBookings
+        .Include(b => b.Room)
+        .ToListAsync();
+
+    var result = bookings.Select(b => new RoomBookingDto
+    {
+        Id = b.Id,
+        RoomId = b.RoomId,
+        RoomName = b.Room != null ? b.Room.Name : "",
+        BookerName = b.BookerName,
+        PurposeOfBooking = b.PurposeOfBooking,
+        StartTime = b.StartTime,
+        EndTime = b.EndTime,
+        Status = b.Status.ToString()
+    }).ToList();
+
+    return Ok(result);
+}
+
 
         // POST: api/RoomBookings
         [HttpPost]
-        public async Task<ActionResult<RoomBooking>> CreateBooking(RoomBooking booking)
+        public async Task<ActionResult<RoomBookingDto>> CreateBooking(RoomBookingDto bookingDto)
         {
-            // 1. Cek bentrok jadwal
+            // Validasi StartTime dan EndTime
+            if (bookingDto.StartTime >= bookingDto.EndTime)
+            {
+                return BadRequest("StartTime harus lebih kecil dari EndTime.");
+            }
+
+            // Validasi RoomId
+            var room = await _context.Rooms.FirstOrDefaultAsync(r => r.Id == bookingDto.RoomId);
+            if (room == null)
+            {
+                return BadRequest("RoomId tidak valid.");
+            }
+
+            // Validasi bentrok jadwal
             var isConflict = await _context.RoomBookings.AnyAsync(b =>
-                b.RoomId == booking.RoomId &&
+                b.RoomId == bookingDto.RoomId &&
                 b.Status == BookingStatus.Approved &&
                 (
-                    (booking.StartTime >= b.StartTime && booking.StartTime < b.EndTime) ||
-                    (booking.EndTime > b.StartTime && booking.EndTime <= b.EndTime) ||
-                    (booking.StartTime <= b.StartTime && booking.EndTime >= b.EndTime)
+                    (bookingDto.StartTime >= b.StartTime && bookingDto.StartTime < b.EndTime) ||
+                    (bookingDto.EndTime > b.StartTime && bookingDto.EndTime <= b.EndTime) ||
+                    (bookingDto.StartTime <= b.StartTime && bookingDto.EndTime >= b.EndTime)
                 )
             );
 
-            // 2. Kalau bentrok, tolak
             if (isConflict)
             {
                 return BadRequest("Ruangan sudah dibooking di jam tersebut.");
             }
 
-            // 3. Kalau aman, simpan
-            _context.RoomBookings.Add(booking);
-            await _context.SaveChangesAsync();
+            // Simpan ke database
+            var booking = new RoomBooking
+            {
+                RoomId = bookingDto.RoomId,
+                BookerName = bookingDto.BookerName,
+                StartTime = bookingDto.StartTime,
+                EndTime = bookingDto.EndTime,
+                Status = BookingStatus.Pending, // Default status
+                PurposeOfBooking = bookingDto.PurposeOfBooking
+            };
 
-            return CreatedAtAction(nameof(GetBookings), new { id = booking.Id }, booking);
+            try
+            {
+                _context.RoomBookings.Add(booking);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+
+            // Mengonversi ke DTO untuk response
+            var bookingResponse = new RoomBookingDto
+            {
+                Id = booking.Id,
+                RoomId = booking.RoomId,
+                BookerName = booking.BookerName,
+                StartTime = booking.StartTime,
+                EndTime = booking.EndTime,
+                Status = booking.Status.ToString(),
+                PurposeOfBooking = booking.PurposeOfBooking
+            };
+
+            return CreatedAtAction(nameof(GetBookings), new { id = booking.Id }, bookingResponse);
         }
 
-        // PATCH: api/RoomBookings/{id}/status
-        [HttpPatch("{id}/status")]
-        public async Task<IActionResult> UpdateStatus(int id, [FromBody] BookingStatus status)
+        // PATCH: api/RoomBookings/{id}
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> UpdateBooking(int id, RoomBookingDto bookingDto)
         {
-            var booking = await _context.RoomBookings
-                .Include(b => b.Room)
-                .FirstOrDefaultAsync(b => b.Id == id);
+            var booking = await _context.RoomBookings.FirstOrDefaultAsync(b => b.Id == id);
+            if (booking == null)
+            {
+                return NotFound();
+            }
 
-            if (booking == null) return NotFound();
+            // Validasi StartTime dan EndTime
+            if (bookingDto.StartTime >= bookingDto.EndTime)
+            {
+                return BadRequest("StartTime harus lebih kecil dari EndTime.");
+            }
 
-            booking.Status = status;
-            await _context.SaveChangesAsync();
+            // Update fields
+            booking.BookerName = bookingDto.BookerName;
+            booking.StartTime = bookingDto.StartTime;
+            booking.EndTime = bookingDto.EndTime;
+            booking.Status = (BookingStatus)Enum.Parse(typeof(BookingStatus), bookingDto.Status);
+            booking.PurposeOfBooking = bookingDto.PurposeOfBooking;
 
-            return Ok(booking); 
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+
+            return NoContent(); 
         }
 
         // GET: api/RoomBookings/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<RoomBooking>> GetBookingById(int id)
+        public async Task<ActionResult<RoomBookingDto>> GetBookingById(int id)
         {
             var booking = await _context.RoomBookings
-                .Include(b => b.Room)
                 .FirstOrDefaultAsync(b => b.Id == id);
 
             if (booking == null)
+            {
                 return NotFound();
+            }
 
-            return Ok(booking);
-        }
+            var bookingDto = new RoomBookingDto
+            {
+                Id = booking.Id,
+                RoomId = booking.RoomId,
+                BookerName = booking.BookerName,
+                StartTime = booking.StartTime,
+                EndTime = booking.EndTime,
+                Status = booking.Status.ToString(),
+                PurposeOfBooking = booking.PurposeOfBooking
+            };
 
-        // GET: api/RoomBookings/by-status?status=Approved
-        [HttpGet("by-status")]
-        public async Task<IActionResult> GetByStatus([FromQuery] BookingStatus status)
-        {
-            var bookings = await _context.RoomBookings
-                .Include(b => b.Room)
-                .Where(b => b.Status == status)
-                .ToListAsync();
-
-            return Ok(bookings);
-        }
-
-        // GET: api/RoomBookings/by-room?roomId=1
-        [HttpGet("by-room")]
-        public async Task<IActionResult> GetByRoom([FromQuery] int roomId)
-        {
-            var bookings = await _context.RoomBookings
-                .Include(b => b.Room)
-                .Where(b => b.RoomId == roomId)
-                .ToListAsync();
-
-            return Ok(bookings);
-        }
-
-        // GET: api/RoomBookings/by-date?date=2026-02-12
-        [HttpGet("by-date")]
-        public async Task<IActionResult> GetByDate([FromQuery] DateTime date)
-        {
-            var bookings = await _context.RoomBookings
-                .Include(b => b.Room)
-                .Where(b =>
-                    b.StartTime.Date == date.Date
-                )
-                .ToListAsync();
-
-            return Ok(bookings);
+            return Ok(bookingDto);
         }
 
         // DELETE: api/RoomBookings/{id}
@@ -126,14 +175,81 @@ namespace RuangKampus.API.Controllers
         public async Task<IActionResult> DeleteBooking(int id)
         {
             var booking = await _context.RoomBookings.FindAsync(id);
-
             if (booking == null)
+            {
                 return NotFound();
+            }
 
             _context.RoomBookings.Remove(booking);
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        // GET: api/RoomBookings/by-status?status=Approved
+        [HttpGet("by-status")]
+        public async Task<IActionResult> GetByStatus([FromQuery] BookingStatus status)
+        {
+            var bookings = await _context.RoomBookings
+                .Where(b => b.Status == status)
+                .ToListAsync();
+
+            var bookingDtos = bookings.Select(b => new RoomBookingDto
+            {
+                Id = b.Id,
+                RoomId = b.RoomId,
+                BookerName = b.BookerName,
+                StartTime = b.StartTime,
+                EndTime = b.EndTime,
+                Status = b.Status.ToString(),
+                PurposeOfBooking = b.PurposeOfBooking
+            }).ToList();
+
+            return Ok(bookingDtos);
+        }
+
+        // GET: api/RoomBookings/by-room?roomId=1
+        [HttpGet("by-room")]
+        public async Task<IActionResult> GetByRoom([FromQuery] int roomId)
+        {
+            var bookings = await _context.RoomBookings
+                .Where(b => b.RoomId == roomId)
+                .ToListAsync();
+
+            var bookingDtos = bookings.Select(b => new RoomBookingDto
+            {
+                Id = b.Id,
+                RoomId = b.RoomId,
+                BookerName = b.BookerName,
+                StartTime = b.StartTime,
+                EndTime = b.EndTime,
+                Status = b.Status.ToString(),
+                PurposeOfBooking = b.PurposeOfBooking
+            }).ToList();
+
+            return Ok(bookingDtos);
+        }
+
+        // GET: api/RoomBookings/by-date?date=2026-02-12
+        [HttpGet("by-date")]
+        public async Task<IActionResult> GetByDate([FromQuery] DateTime date)
+        {
+            var bookings = await _context.RoomBookings
+                .Where(b => b.StartTime.Date == date.Date)
+                .ToListAsync();
+
+            var bookingDtos = bookings.Select(b => new RoomBookingDto
+            {
+                Id = b.Id,
+                RoomId = b.RoomId,
+                BookerName = b.BookerName,
+                StartTime = b.StartTime,
+                EndTime = b.EndTime,
+                Status = b.Status.ToString(),
+                PurposeOfBooking = b.PurposeOfBooking
+            }).ToList();
+
+            return Ok(bookingDtos);
         }
     }
 }

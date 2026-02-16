@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RuangKampus.API.Data;
 
@@ -10,9 +11,11 @@ using RuangKampus.API.Data;
 namespace RuangKampus.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260215080401_AddPurposeOfBookingToRoomBooking")]
+    partial class AddPurposeOfBookingToRoomBooking
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.3");
@@ -40,24 +43,6 @@ namespace RuangKampus.API.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Rooms");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Capacity = 30,
-                            IsActive = true,
-                            Location = "Gedung D4 Lantai 2",
-                            Name = "Lab Agile C206"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Capacity = 500,
-                            IsActive = true,
-                            Location = "Gedung Pascasarjana Lantai 6",
-                            Name = "Auditorium"
-                        });
                 });
 
             modelBuilder.Entity("RuangKampus.API.Models.RoomBooking", b =>
