@@ -141,7 +141,7 @@ public async Task<ActionResult<IEnumerable<RoomBookingDto>>> GetBookings()
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
 
-            return NoContent(); // Successful update without returning data
+            return NoContent(); 
         }
 
         // GET: api/RoomBookings/{id}
