@@ -4,6 +4,8 @@ obj/
 
 # SQLite database (local)
 *.db
+*.db-shm
+*.db-wal
 
 # User-specific files
 *.user
